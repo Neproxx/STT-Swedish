@@ -1,0 +1,9 @@
+gradio==3.12.0
+transformers==4.25.1
+librosa
+jiwer
+datasets
+torch
+torchaudio
+moviepy
+git+https://github.com/pytube/pytube
