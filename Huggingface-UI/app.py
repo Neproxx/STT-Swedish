@@ -5,7 +5,26 @@ from pytube import YouTube
 from datasets import Dataset, Audio
 from moviepy.editor import AudioFileClip
 
+# import googletrans                  # googletrans api
+# from googletrans import Translator  # googletrans api
+from google_trans_new import google_translator  
+
 pipe = pipeline(model="Neprox/model")
+translator = google_translator()
+# translator = Translator() # googletrans api
+
+# Get languages available for translation
+#languages = []
+#for code, name in googletrans.LANGUAGES.items():
+#    language = f"{name.capitalize()} ({code})"
+#    languages.append(language)
+languages = [
+    "French (fr)",
+    "English (en)",
+    "German (de)",
+    "Spanish (es)",
+]
+
 
 def download_from_youtube(url):
     """
@@ -65,19 +84,22 @@ def divide_into_30s_segments(audio_fpath, seconds_max):
 
     return segment_paths, segment_start_times
 
-def get_translation(text):
+def get_translation(text, target_lang="English (en)"):
     """
-    Translates the given Swedish text to English.
+    Translates the given Swedish text to the language specified.
     """
-    # TODO: Make API call to Google Translate to get English translation
-    return "..."
+    lang_code = target_lang.split(" ")[-1][1:-1]
+    return translator.translate(text, lang_tgt=lang_code)
+    # result = translator.translate(text, lang_code, 'sv')  # googletrans api
+    # return result.text                                    # googletrans api
 
-def transcribe(audio, url, seconds_max):
+
+def translate(audio, url, seconds_max, target_lang):
     """
-    Transcribes a YouTube video if a url is specified and returns the transcription.
-    If not url is specified, it transcribes the audio file as passed by Gradio.
+    Translates a YouTube video if a url is specified and returns the transcription.
+    If not url is specified, it translates the audio file as passed by Gradio.
     :param audio: Audio file as passed by Gradio. Only used if no url is specified.
-    :param url: YouTube URL to transcribe.
+    :param url: URL of the YouTube video to translate.
     :param seconds_max: Maximum number of seconds to consider. If the audio file is longer than this, it will be truncated.
     """
     if url:
@@ -91,7 +113,8 @@ def transcribe(audio, url, seconds_max):
         for i, (seconds, output) in enumerate(zip(segment_start_times, pred)):
             text += f"[Segment {i+1}/{n_segments}, start time {get_timestamp(seconds)}]\n"
             text += f"{output['text']}\n"
-            text += f"[Translation]\n{get_translation(output['text'])}\n\n"
+            text += f"[Translation ({target_lang})]\n"
+            text += f"{get_translation(output['text'], target_lang)}\n\n"
         return text
 
     else:
@@ -99,11 +122,12 @@ def transcribe(audio, url, seconds_max):
     return text
 
 iface = gr.Interface(
-    fn=transcribe, 
+    fn=translate, 
     inputs=[
-        gr.Audio(source="microphone", type="filepath", label="Transcribe from Microphone"),
-        gr.Text(max_lines=1, placeholder="Enter YouTube Link with Swedish speech to be transcribed", label="Transcribe from YouTube URL"),
-        gr.Slider(minimum=30, maximum=300, value=30, step=30, label="Number of seconds to transcribe from YouTube URL")
+        gr.Audio(source="microphone", type="filepath", label="Translate from Microphone"),
+        gr.Text(max_lines=1, placeholder="Enter YouTube Link with Swedish speech to be translated", label="Translate from YouTube URL"),
+        gr.Slider(minimum=30, maximum=300, value=30, step=30, label="Number of seconds to translate from YouTube URL"),
+        gr.Dropdown(languages, label="Target language")
     ], 
     outputs="text",
     title="Whisper Small Swedish",
