@@ -4,28 +4,16 @@ from transformers import pipeline
 from pytube import YouTube
 from datasets import Dataset, Audio
 from moviepy.editor import AudioFileClip
-
-# import googletrans                  # googletrans api
-# from googletrans import Translator  # googletrans api
-# from google_trans_new import google_translator # google_trans_new api
-from deep_translator import MicrosoftTranslator # GoogleTranslator
+from deep_translator import GoogleTranslator
 
 pipe = pipeline(model="Neprox/model")
-# translator = google_translator() # google_trans_new api
-# translator = Translator() # googletrans api
 
-# Get languages available for translation
-#languages = []
-#for code, name in googletrans.LANGUAGES.items():
-#    language = f"{name.capitalize()} ({code})"
-#    languages.append(language)
 languages = [
-    "French (fr)",
     "English (en)",
     "German (de)",
+    "French (fr)",
     "Spanish (es)",
 ]
-
 
 def download_from_youtube(url):
     """
@@ -90,11 +78,7 @@ def get_translation(text, target_lang="English (en)"):
     Translates the given Swedish text to the language specified.
     """
     lang_code = target_lang.split(" ")[-1][1:-1]
-    return MicrosoftTranslator(source='sv', target=lang_code).translate(text)
-    # return translator.translate(text, lang_tgt=lang_code) # googletrans_new api
-    # result = translator.translate(text, lang_code, 'sv')  # googletrans api
-    # return result.text                                    # googletrans api
-
+    return GoogleTranslator(source='sv', target=lang_code).translate(text)
 
 def translate(audio, url, seconds_max, target_lang):
     """
@@ -115,7 +99,7 @@ def translate(audio, url, seconds_max, target_lang):
         for i, (seconds, output) in enumerate(zip(segment_start_times, pred)):
             text += f"[Segment {i+1}/{n_segments}, start time {get_timestamp(seconds)}]\n"
             text += f"{output['text']}\n"
-            text += f"[Translation ({target_lang})]\n"
+            text += f"[Translation to {target_lang}]\n"
             text += f"{get_translation(output['text'], target_lang)}\n\n"
         return text
 
@@ -129,11 +113,11 @@ iface = gr.Interface(
         gr.Audio(source="microphone", type="filepath", label="Translate from Microphone"),
         gr.Text(max_lines=1, placeholder="Enter YouTube Link with Swedish speech to be translated", label="Translate from YouTube URL"),
         gr.Slider(minimum=30, maximum=300, value=30, step=30, label="Number of seconds to translate from YouTube URL"),
-        gr.Dropdown(languages, label="Target language")
+        gr.Dropdown(languages, value="English (en)", label="Target language")
     ], 
     outputs="text",
     title="Whisper Small Swedish",
-    description="Realtime demo for Swedish speech recognition using a fine-tuned Whisper small model.",
+    description="Realtime demo for Swedish speech recognition with translation using a fine-tuned Whisper small model.",
 )
 
 iface.launch()
