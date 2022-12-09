@@ -7,4 +7,5 @@ torch
 torchaudio
 moviepy
 git+https://github.com/pytube/pytube
-google-trans-new
+deep-translator
+#google-trans-new

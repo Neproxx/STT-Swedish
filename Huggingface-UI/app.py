@@ -7,10 +7,11 @@ from moviepy.editor import AudioFileClip
 
 # import googletrans                  # googletrans api
 # from googletrans import Translator  # googletrans api
-from google_trans_new import google_translator  
+# from google_trans_new import google_translator # google_trans_new api
+from deep_translator import MicrosoftTranslator # GoogleTranslator
 
 pipe = pipeline(model="Neprox/model")
-translator = google_translator()
+# translator = google_translator() # google_trans_new api
 # translator = Translator() # googletrans api
 
 # Get languages available for translation
@@ -89,7 +90,8 @@ def get_translation(text, target_lang="English (en)"):
     Translates the given Swedish text to the language specified.
     """
     lang_code = target_lang.split(" ")[-1][1:-1]
-    return translator.translate(text, lang_tgt=lang_code)
+    return MicrosoftTranslator(source='sv', target=lang_code).translate(text)
+    # return translator.translate(text, lang_tgt=lang_code) # googletrans_new api
     # result = translator.translate(text, lang_code, 'sv')  # googletrans api
     # return result.text                                    # googletrans api
 
