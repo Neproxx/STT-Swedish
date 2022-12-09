@@ -6,7 +6,7 @@ from datasets import Dataset, Audio
 from moviepy.editor import AudioFileClip
 from deep_translator import GoogleTranslator
 
-pipe = pipeline(model="Neprox/model")
+pipe = pipeline(model="Neprox/STT-Swedish-Whisper")
 
 languages = [
     "English (en)",
@@ -104,7 +104,12 @@ def translate(audio, url, seconds_max, target_lang):
         return text
 
     else:
-        text = pipe(audio)["text"]
+        transcribed_text = pipe(audio)["text"]
+        text = "[Transcription]\n"
+        text += f"{transcribed_text}\n"
+        text += f"[Translation to {target_lang}]\n"
+        text += get_translation(transcribed_text, target_lang)
+
     return text
 
 iface = gr.Interface(
@@ -117,7 +122,7 @@ iface = gr.Interface(
     ], 
     outputs="text",
     title="Whisper Small Swedish",
-    description="Realtime demo for Swedish speech recognition with translation using a fine-tuned Whisper small model.",
+    description="Realtime demo for Swedish speech recognition with translation using a fine-tuned Whisper small model.\nChoose EITHER a YouTube URL or use the microphone to record the audio to translate.",
 )
 
 iface.launch()
